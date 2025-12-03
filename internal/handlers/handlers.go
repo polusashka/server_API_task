@@ -19,6 +19,7 @@ func MainHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.Header().Set("Content-type", "text/html; charset=utf-8")
+	res.WriteHeader(http.StatusOK)
 	res.Write(data)
 }
 
@@ -63,6 +64,7 @@ func UploadHandler(res http.ResponseWriter, req *http.Request) {
 
 	os.WriteFile(filename, []byte(processedData), 0755)
 
-	res.Header().Set("Content-type", "text/html; charset=utf-8")
+	res.Header().Set("Content-type", "text/plain; charset=utf-8")
+	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(processedData))
 }
