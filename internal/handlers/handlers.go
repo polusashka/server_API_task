@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/Yandex-Practicum/go1fl-sprint6-final/internal/service"
 )
@@ -14,7 +12,7 @@ import (
 func MainHandler(res http.ResponseWriter, req *http.Request) {
 	data, err := os.ReadFile("../index.html")
 	if err != nil {
-		http.Error(res, "Файл index.html не найден", http.StatusNotFound)
+		http.Error(res, "Файл index.html не найден", http.StatusOK)
 		return
 	}
 
@@ -54,8 +52,9 @@ func UploadHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	filename := filepath.Join("../upload", header.Filename)
-	timeStamp := time.Now().Format("2006-01-02_15-04-05")
-	newFile, err := os.Create(filename + fmt.Sprintf("_%s.txt", timeStamp))
+	//timeStamp := time.Now().Format("2006-01-02_15-04-05")
+	//newFile, err := os.Create(filename + fmt.Sprintf("_%s.txt", timeStamp))
+	newFile, err := os.Create(filename)
 	if err != nil {
 		http.Error(res, "Ошибка создания локального файла"+err.Error(), http.StatusInternalServerError)
 		return
