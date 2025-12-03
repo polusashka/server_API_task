@@ -24,18 +24,21 @@ func MainHandler(res http.ResponseWriter, req *http.Request) {
 
 func UploadHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
+		res.Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.Error(res, "Метод не поддерживается", http.StatusMethodNotAllowed)
 		return
 	}
 
 	err := req.ParseMultipartForm(10 << 20)
 	if err != nil {
+		res.Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.Error(res, "Ошибка парсинга формы", http.StatusInternalServerError)
 		return
 	}
 
 	file, header, err := req.FormFile("myFile")
 	if err != nil {
+		res.Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.Error(res, "Файл не найден", http.StatusInternalServerError)
 		return
 	}
@@ -43,12 +46,14 @@ func UploadHandler(res http.ResponseWriter, req *http.Request) {
 
 	fileData, err := io.ReadAll(file)
 	if err != nil {
+		res.Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.Error(res, "Ошибка чтения файла", http.StatusInternalServerError)
 		return
 	}
 
 	processedData, err := service.AutoDetection(string(fileData))
 	if err != nil {
+		res.Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.Error(res, "Ошибка перобразования "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -57,6 +62,7 @@ func UploadHandler(res http.ResponseWriter, req *http.Request) {
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.MkdirAll(uploadDir, 0755)
 		if err != nil {
+			res.Header().Set("Content-Type", "text/html; charset=utf-8")
 			http.Error(res, "Ошибка создания директории: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
