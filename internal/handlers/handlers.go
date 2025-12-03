@@ -54,16 +54,16 @@ func UploadHandler(res http.ResponseWriter, req *http.Request) {
 	filename := filepath.Join("../upload", header.Filename)
 	//timeStamp := time.Now().Format("2006-01-02_15-04-05")
 	//newFile, err := os.Create(filename + fmt.Sprintf("_%s.txt", timeStamp))
-	newFile, err := os.Create(filename)
-	if err != nil {
-		http.Error(res, "Ошибка создания локального файла"+err.Error(), http.StatusInternalServerError)
+	errCreate := os.WriteFile(filename, []byte(processedData), 0755)
+	if errCreate != nil {
+		http.Error(res, "Ошибка создания локального файла"+errCreate.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer newFile.Close()
+	//defer newFile.Close()
 
-	os.WriteFile(filename, []byte(processedData), 0755)
+	//os.WriteFile(filename, []byte(processedData), 0755)
 
-	res.Header().Set("Content-type", "text/plain; charset=utf-8")
+	res.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(processedData))
 }
