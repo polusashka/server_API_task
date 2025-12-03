@@ -13,7 +13,9 @@ import (
 func MainHandler(res http.ResponseWriter, req *http.Request) {
 	data, err := os.ReadFile("../index.html")
 	if err != nil {
-		http.Error(res, "Файл index.html не найден", http.StatusOK)
+		res.Header().Set("Content-Type", "text/html; charset=utf-8")
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte("Файл index.html не найден"))
 		return
 	}
 
@@ -24,37 +26,37 @@ func MainHandler(res http.ResponseWriter, req *http.Request) {
 
 func UploadHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
-		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.Error(res, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		res.WriteHeader(http.StatusMethodNotAllowed)
+		res.Write([]byte("Метод не поддерживается"))
 		return
 	}
 
 	err := req.ParseMultipartForm(10 << 20)
 	if err != nil {
-		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.Error(res, "Ошибка парсинга формы", http.StatusInternalServerError)
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte("Ошибка парсинга формы"))
 		return
 	}
 
 	file, header, err := req.FormFile("myFile")
 	if err != nil {
-		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.Error(res, "Файл не найден", http.StatusInternalServerError)
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte("Файл не найден"))
 		return
 	}
 	defer file.Close()
 
 	fileData, err := io.ReadAll(file)
 	if err != nil {
-		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.Error(res, "Ошибка чтения файла", http.StatusInternalServerError)
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte("Ошибка чтения файла"))
 		return
 	}
 
 	processedData, err := service.AutoDetection(string(fileData))
 	if err != nil {
-		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.Error(res, "Ошибка перобразования "+err.Error(), http.StatusInternalServerError)
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte("Ошибка преобразования " + err.Error()))
 		return
 	}
 
@@ -62,15 +64,13 @@ func UploadHandler(res http.ResponseWriter, req *http.Request) {
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.MkdirAll(uploadDir, 0755)
 		if err != nil {
-			res.Header().Set("Content-Type", "text/html; charset=utf-8")
-			http.Error(res, "Ошибка создания директории: "+err.Error(), http.StatusInternalServerError)
+			res.WriteHeader(http.StatusInternalServerError)
+			res.Write([]byte("Ошибка создания директории: " + err.Error()))
 			return
 		}
 	}
 
 	filename := filepath.Join(uploadDir, header.Filename)
-	//timeStamp := time.Now().Format("2006-01-02_15-04-05")
-	//newFile, err := os.Create(filename + fmt.Sprintf("_%s.txt", timeStamp))
 	errCreate := os.WriteFile(filename, []byte(processedData), 0755)
 	if errCreate != nil {
 		log.Printf("Ошибка сохранения файла: %v", err)
