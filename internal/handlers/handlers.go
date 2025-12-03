@@ -14,7 +14,7 @@ func MainHandler(res http.ResponseWriter, req *http.Request) {
 	data, err := os.ReadFile("../index.html")
 	if err != nil {
 		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-		res.WriteHeader(http.StatusInternalServerError)
+		res.WriteHeader(http.StatusOK)
 		res.Write([]byte("Файл index.html не найден"))
 		return
 	}
