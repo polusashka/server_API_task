@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -48,22 +49,28 @@ func UploadHandler(res http.ResponseWriter, req *http.Request) {
 
 	processedData, err := service.AutoDetection(string(fileData))
 	if err != nil {
-		http.Error(res, "Ошибка перобразования"+err.Error(), http.StatusInternalServerError)
+		http.Error(res, "Ошибка перобразования "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	filename := filepath.Join("../upload", header.Filename)
+
+	uploadDir := "../upload"
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		err = os.MkdirAll(uploadDir, 0755)
+		if err != nil {
+			http.Error(res, "Ошибка создания директории: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	filename := filepath.Join(uploadDir, header.Filename)
 	//timeStamp := time.Now().Format("2006-01-02_15-04-05")
 	//newFile, err := os.Create(filename + fmt.Sprintf("_%s.txt", timeStamp))
 	errCreate := os.WriteFile(filename, []byte(processedData), 0755)
 	if errCreate != nil {
-		http.Error(res, "Ошибка создания локального файла"+errCreate.Error(), http.StatusInternalServerError)
-		return
+		log.Printf("Ошибка сохранения файла: %v", err)
 	}
-	//defer newFile.Close()
 
-	//os.WriteFile(filename, []byte(processedData), 0755)
-
-	res.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(processedData))
 }
